@@ -11,7 +11,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.0.0
 
       - name: Install the  dependencies
-        run: uv sync --lock
+        run: uv sync --locked
 
       - name: Run linters and type-checker
         run: uv run poe check

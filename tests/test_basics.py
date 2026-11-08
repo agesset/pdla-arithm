@@ -1,4 +1,6 @@
 from arithmp.parser import Parser
+
+
 def test_add():
     parse = Parser()
     assert parse.parse("3 + 4") == 7.0
