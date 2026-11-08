@@ -1,0 +1,23 @@
+name: Release pipeline
+on: 
+  push:
+    tags: 
+      - "v*"
+
+permissions: 
+  contents: write
+jobs:
+  release:
+    name: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v10.0.0
+
+      - name: Build the package
+        run: uv build  
+      - name: Create the github release
+        env:
+         GH_TOKEN: ${{ github.token }}
+        run: gh  release create "${{ github.ref_name }}" dist/* --generate-notes
