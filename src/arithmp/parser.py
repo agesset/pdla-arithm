@@ -20,7 +20,7 @@ class Parser:
             Path(__file__).parent.joinpath("arithmp.lark").read_text(), parser="lalr"
         )
 
-        self._variables: Mapping[str, float] = {"pi": math.pi, "e": math.exp(1)}
+        self._variables: dict[str, float] = {"pi": math.pi, "e": math.exp(1)}
 
     def _eval(self, tree: Tree[Token] | Token, variables: Mapping[str, float]) -> float:
         if isinstance(tree, Token):
@@ -44,15 +44,23 @@ class Parser:
                 return self._eval(tree.children[0], variables) ** self._eval(
                     tree.children[1], variables
                 )
+            case "variable":
+                name = str(tree.children[0])
+                if name not in variables:
+                    raise ValueError(f"Unknown variable: '{name}'")
+                return variables[name]
             case _:
                 raise ValueError(f"Unexpected tree data: {tree.data}")
 
     def parse(
-    self,
-    expression: str,
-    *,
-    variables: Mapping[str, float] = {}
-    ) -> float:
-        return self._eval(
-            self.parser.parse(expression), {**self._variables, **variables}
-        )
+        self, expression: str, *, variables: Mapping[str, float] = {}
+    ) -> float | None:
+        tree = self.parser.parse(expression)
+        env = {**self._variables, **variables}
+
+        if tree.data == "variable_assignment":
+            name, value_tree = tree.children
+            self._variables[str(name)] = self._eval(value_tree, env)
+            return None  # `a = 4` n'affiche rien
+
+        return self._eval(tree, env)
