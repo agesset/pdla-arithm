@@ -6,12 +6,12 @@ jobs:
     name: Linters & type-checkers
     runs-on: ubuntu-latest
     steps:
-      -uses: actions/checkout@v4 
+      - uses: actions/checkout@v4 
 
-      -uses: astral-sh/setup-uv@v10.0.0
+      - uses: astral-sh/setup-uv@v10.0.0
 
-      -name: Install the  dependencies
-        uv sync --lock
+      - name: Install the  dependencies
+        run: uv sync --locked
 
-      -name: Run linters and type-checker
-        uv run poe check
+      - name: Run linters and type-checker
+        run: uv run poe check
