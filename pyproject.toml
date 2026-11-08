@@ -13,6 +13,7 @@ dependencies = [
 [project.scripts]
 arithmp = "arithmp.__main__:main"
 
+
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
@@ -29,4 +30,7 @@ dev = [
 lint-ruff = "ruff check"
 lint-ty = "ty check"
 check = ["lint-ruff", "lint-ty"] 
+
+
+
 

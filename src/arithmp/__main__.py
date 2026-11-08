@@ -3,12 +3,20 @@ import click
 from .parser import Parser
 
 
-@click.command()
-@click.argument("expression")
-def main(expression: str):
-    parser = Parser()
-    result = parser.parse(expression)
 
+@click.command()
+@click.option(
+    "-c",
+    "--command",
+    "command",
+    default=None,
+    help="Expression à évaluer, par exemple : arithmp -c '1 + 2'.",
+)
+def main(command: str | None):
+    if command is None:
+        raise click.UsageError("Une expression est requise : utilise -c \"expr\".")
+
+    result = Parser().parse(command)
     click.echo(result)
 
 
