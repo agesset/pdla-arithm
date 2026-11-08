@@ -12,6 +12,14 @@ _builtins = {
     "div": operator.truediv,
     "mod": operator.mod,
 }
+_functions = {
+    **_builtins,
+    "abs": abs,
+    "round": round,
+    "min": min,
+    "max": max,
+    "sqrt": math.sqrt,
+}
 
 
 class Parser:
@@ -44,15 +52,24 @@ class Parser:
                 return self._eval(tree.children[0], variables) ** self._eval(
                     tree.children[1], variables
                 )
+            case "function_call":
+                name = str(tree.children[0])
+                if name not in _functions:
+                    raise ValueError(f"Unknown function: '{name}'")
+                arguments = tree.children[1]  # None si aucun argument
+                values = (
+                    []
+                    if arguments is None
+                    else [self._eval(arg, variables) for arg in arguments.children]
+                )
+                try:
+                    return float(_functions[name](*values))
+                except (TypeError, ValueError) as error:
+                    raise ValueError(f"Invalid call to {name}(): {error}") from error
             case _:
                 raise ValueError(f"Unexpected tree data: {tree.data}")
 
-    def parse(
-    self,
-    expression: str,
-    *,
-    variables: Mapping[str, float] = {}
-    ) -> float:
+    def parse(self, expression: str, *, variables: Mapping[str, float] = {}) -> float:
         return self._eval(
             self.parser.parse(expression), {**self._variables, **variables}
         )
