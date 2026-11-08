@@ -1,0 +1,17 @@
+name: Lint pipeline
+on: [pull_request, push] 
+
+jobs:
+  lint:
+    name: Linters & type-checkers
+    runs-on: ubuntu-latest
+    steps:
+      -uses: actions/checkout@v4 
+
+      -uses: astral-sh/setup-uv@v10.0.0
+
+      -name: Install the  dependencies
+        uv sync --lock
+
+      -name: Run linters and type-checker
+        uv run poe check
