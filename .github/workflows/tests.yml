@@ -1,0 +1,22 @@
+name: Tests pipeline
+on: 
+  pull_request:
+  push:
+    branches: [main] 
+jobs: 
+  tests:
+    name: Tests operators
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install the dependencies
+        run: uv sync --locked
+
+      - name: Launch tests
+        run: uv run pytest -v
+       
+
+
