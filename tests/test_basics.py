@@ -1,4 +1,5 @@
 import pytest
+
 from arithmp.parser import Parser
 
 
