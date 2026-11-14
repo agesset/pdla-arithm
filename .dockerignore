@@ -1,0 +1,5 @@
+*
+!src
+!pyproject.toml
+!tests
+!README.md
