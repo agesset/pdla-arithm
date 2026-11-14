@@ -5,9 +5,24 @@ from .parser import Parser
 
 
 @click.command()
-def main():
-    """Lance l'interpréteur interactif d'arithmp."""
+@click.option(
+    "-c",
+    "--command",
+    "command",
+    default=None,
+    help="Évalue l'expression donnée et affiche le résultat.",
+)
+def main(command: str | None):
+    """Lance l'interpréteur interactif d'arithmp (ou évalue -c "expr")."""
     parser = Parser()
+
+    if command is not None:
+        try:
+            click.echo(parser.parse(command))
+        except (LarkError, ArithmeticError) as error:
+            raise click.ClickException(str(error)) from error
+        return
+
     click.echo("arithmp - interpréteur interactif (Ctrl+D ou 'exit' pour quitter)")
 
     while True:
