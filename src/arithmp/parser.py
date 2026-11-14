@@ -1,7 +1,8 @@
 import math
 import operator
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import Any
 
 from lark import Lark, Token, Tree
 
@@ -12,7 +13,7 @@ _builtins = {
     "div": operator.truediv,
     "mod": operator.mod,
 }
-_functions = {
+_functions: dict[str, Callable[..., Any]] = {
     **_builtins,
     "abs": abs,
     "round": round,
@@ -30,7 +31,7 @@ class Parser:
 
         self._variables: Mapping[str, float] = {"pi": math.pi, "e": math.exp(1)}
 
-    def _eval(self, tree: Tree[Token] | Token, variables: Mapping[str, float]) -> float:
+    def _eval(self, tree: Tree[Token] | Token, variables: Mapping[str, float]) -> None | float:
         if isinstance(tree, Token):
             if tree.type == "NUMBER":
                 return float(tree.value)
@@ -57,17 +58,13 @@ class Parser:
                 if name not in _functions:
                     raise ValueError(f"Unknown function: '{name}'")
                 arguments = tree.children[1]  # None si aucun argument
-                values = (
-                    []
-                    if arguments is None
-                    else [self._eval(arg, variables) for arg in arguments.children]
-                )
+                values: list[float] = []
+                if isinstance(arguments, Tree):
+                    values = [self._eval(arg, variables) for arg in arguments.children]
                 try:
                     return float(_functions[name](*values))
                 except (TypeError, ValueError) as error:
                     raise ValueError(f"Invalid call to {name}(): {error}") from error
-            case _:
-                raise ValueError(f"Unexpected tree data: {tree.data}")
 
     def parse(self, expression: str, *, variables: Mapping[str, float] = {}) -> float:
         return self._eval(
