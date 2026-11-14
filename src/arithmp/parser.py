@@ -1,7 +1,8 @@
 import math
 import operator
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import Any
 
 from lark import Lark, Token, Tree
 
@@ -11,6 +12,14 @@ _builtins = {
     "mul": operator.mul,
     "div": operator.truediv,
     "mod": operator.mod,
+}
+_functions: dict[str, Callable[..., Any]] = {
+    **_builtins,
+    "abs": abs,
+    "round": round,
+    "min": min,
+    "max": max,
+    "sqrt": math.sqrt,
 }
 
 
@@ -22,7 +31,7 @@ class Parser:
 
         self._variables: Mapping[str, float] = {"pi": math.pi, "e": math.exp(1)}
 
-    def _eval(self, tree: Tree[Token] | Token, variables: Mapping[str, float]) -> float:
+    def _eval(self, tree: Tree[Token] | Token, variables: Mapping[str, float]) -> None | float:
         if isinstance(tree, Token):
             if tree.type == "NUMBER":
                 return float(tree.value)
@@ -44,15 +53,20 @@ class Parser:
                 return self._eval(tree.children[0], variables) ** self._eval(
                     tree.children[1], variables
                 )
-            case _:
-                raise ValueError(f"Unexpected tree data: {tree.data}")
+            case "function_call":
+                name = str(tree.children[0])
+                if name not in _functions:
+                    raise ValueError(f"Unknown function: '{name}'")
+                arguments = tree.children[1]  # None si aucun argument
+                values: list[float] = []
+                if isinstance(arguments, Tree):
+                    values = [self._eval(arg, variables) for arg in arguments.children]
+                try:
+                    return float(_functions[name](*values))
+                except (TypeError, ValueError) as error:
+                    raise ValueError(f"Invalid call to {name}(): {error}") from error
 
-    def parse(
-    self,
-    expression: str,
-    *,
-    variables: Mapping[str, float] = {}
-    ) -> float:
+    def parse(self, expression: str, *, variables: Mapping[str, float] = {}) -> float:
         return self._eval(
             self.parser.parse(expression), {**self._variables, **variables}
         )
